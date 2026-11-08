@@ -5,3 +5,5 @@ docs/textbook/*
 !docs/textbook/_format.md
 !docs/textbook/index.md
 !docs/textbook/sample-unit.md
+!docs/textbook/sample-micro-macro.md
+/out/

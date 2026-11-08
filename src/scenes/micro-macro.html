@@ -1,0 +1,478 @@
+<!doctype html>
+<!--
+  src/scenes/micro-macro.html — 통합과학 1 · 미시 세계와 거시 세계 (1920×1080 · 60초 · 30fps)
+  원고: docs/textbook/sample-micro-macro.md (직접 쓴 예시 원고 — 실제 수업에서는 교과서 원문으로 바꾼다)
+  룩: docs/design.md (신문 다큐멘터리). 부품은 src/parts/ 의 것을 그대로 옮겨 썼다.
+
+  장면
+    A  0.0–9.0   headline-page  "규모" — 원자에서 우주까지, 자연은 서로 다른 규모로 이루어져 있다
+    B  9.0–36.0  규모 사다리    찢긴 틀(portrait-clipping 틀) 안 선화 9장 + 아래 눈금자(10의 n제곱 m)
+                                원자핵 → 원자 → 바이러스 → 세포 → 사람 → 지구 → 태양계 → 우리은하 → 우주
+                                세포 다음에 "맨눈의 한계 · 약 0.1 mm" 선과 미시 / 거시 라벨이 나온다
+    C  36.0–49.0 clipping-note ×2  미시 세계 · 거시 세계 정의 (형광펜 없음 — 한 장면 한 군데 규칙 때문에 D에 씀)
+    D  49.0–60.0 headline-page  "측정" + stamp "10⁴¹배" + 형광펜 "알맞은 단위와 도구"
+
+  재생: 브라우저로 열면 바로 재생된다 (?t=12.5 를 붙이면 그 순간에서 멈춤)
+  렌더: node scripts/render.mjs src/scenes/micro-macro.html out/micro-macro.mp4
+        렌더러는 window.__seek(t) 로 한 프레임씩 그린다 (시간에만 의존 — 같은 t면 같은 그림)
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>미시 세계와 거시 세계</title>
+<link rel="stylesheet" href="../parts/tokens.css">
+<style>
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--color-paper); }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+  .abs { position: absolute; }
+  .scene { position: absolute; inset: 0; }
+
+  /* ---- paper-ground (src/parts/paper-ground.html) ---- */
+  #paper-ground { position: absolute; left: -240px; top: -135px; width: 2400px; height: 1350px; overflow: hidden; }
+  #paper-ground > div { position: absolute; inset: 0; }
+  #paper-ground-paper { background: url("../assets/textures/paper.jpg") center / cover; }
+  #paper-ground-newsprint { background: url("../assets/textures/newsprint.png") 0 0 / 2400px 1350px repeat;
+    opacity: var(--newsprint-opacity); filter: blur(var(--newsprint-blur)); mix-blend-mode: multiply; }
+  #paper-ground-vignette { background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 55%, rgba(20,18,15,0.35) 100%); }
+  #grain { position: absolute; inset: -64px; background: url("../assets/textures/grain.png") 0 0 / 512px 512px repeat;
+    opacity: var(--grain-opacity); mix-blend-mode: overlay; pointer-events: none; }
+
+  /* ---- headline-page (src/parts/headline-page.html) ---- */
+  .hp-word { position: absolute; left: -40px; top: -90px; white-space: nowrap;
+    font-size: var(--text-masthead); line-height: 1; font-weight: 900; letter-spacing: -0.03em; color: var(--color-ink); }
+  .hp-rule { position: absolute; left: 0; right: 0; top: 330px; height: var(--rule-thick); background: var(--color-rule); transform-origin: 0 50%; }
+  .hp-lead { position: absolute; right: 120px; top: 400px; width: 1500px; text-align: right;
+    font-size: var(--text-lead); line-height: 1.55; font-weight: 400; font-style: italic; color: var(--color-ink); }
+  .hp-short { position: absolute; right: 120px; top: 700px; width: 240px; height: var(--rule-thin); background: var(--color-ink); transform-origin: 100% 50%; }
+  .tag { position: absolute; left: 60px; bottom: 60px; padding: 10px 22px; background: var(--color-tag); color: var(--color-on-tag);
+    font-family: var(--font-sans); font-size: var(--text-label); line-height: 1.2; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; }
+  .hl { position: relative; display: inline-block; z-index: 0; isolation: isolate; }
+  .hl-ink { position: absolute; left: -10px; right: -10px; top: 18%; bottom: 8%; background: var(--color-highlight);
+    mix-blend-mode: multiply; transform-origin: 0 50%; border-radius: 4px 10px 6px 12px; z-index: -1; }
+  sup { font-size: 0.58em; line-height: 0; vertical-align: 0.82em; font-style: normal; }
+
+  /* ---- 장면 B: 규모 사다리 ---- */
+  .panel { position: absolute; left: 190px; top: 100px; width: 600px; height: 600px; transform-origin: 50% 50%; }
+  .panel svg { width: 100%; height: 100%; overflow: visible; }
+  .art * { fill: none; stroke: var(--color-ink); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .art .fill { fill: var(--color-ink); stroke: none; }
+  .art .thin { stroke-width: 3; }
+  .art .dash { stroke-dasharray: 2 12; stroke-width: 4; }
+  .info { position: absolute; left: 900px; top: 220px; width: 960px; }
+  .info-name { font-size: var(--text-name); line-height: 1.2; font-weight: 500; color: var(--color-ink-soft); }
+  .info-size-wrap { margin-top: 8px; }
+  .info-size { padding-top: 0.12em; font-size: var(--text-title); line-height: 1.25; font-weight: 900; letter-spacing: -0.01em; color: var(--color-ink); }
+  .info-size small { font-size: var(--text-name); font-weight: 500; color: var(--color-ink-soft); margin-right: 18px; }
+  .info-sub-wrap { margin-top: var(--space-24); }
+  .info-sub { font-size: var(--text-label); line-height: 1.4; color: var(--color-ink-soft); }
+  #b-counter { position: absolute; left: 900px; top: 150px; font-family: var(--font-sans); font-size: var(--text-label); font-weight: 700;
+    color: var(--color-ink-soft); letter-spacing: 0.06em; }
+  #b-dots { position: absolute; left: 900px; top: 640px; width: 620px; height: 6px;
+    background: radial-gradient(circle, var(--color-ink) 2.4px, transparent 2.8px) 0 50% / var(--dot-gap) 6px repeat-x; transform-origin: 0 50%; }
+
+  #ruler { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+  #ruler-line { position: absolute; left: 160px; top: 880px; width: 1600px; height: var(--rule-thin); background: var(--color-ink); transform-origin: 0 50%; }
+  .tick { position: absolute; top: 868px; width: 2px; height: 28px; background: var(--color-ink); }
+  .tick.minor { top: 874px; height: 16px; background: var(--color-ink-soft); }
+  .tick-label { position: absolute; top: 910px; width: 120px; margin-left: -60px; text-align: center;
+    font-family: var(--font-sans); font-size: var(--text-label); font-weight: 700; color: var(--color-ink-soft); }
+  #ruler-caption { position: absolute; right: 160px; top: 966px; font-size: var(--text-label); color: var(--color-ink-soft); }
+  #ruler-marker { position: absolute; left: 0; top: 806px; width: var(--rule-thick); height: 74px; margin-left: -7px; background: var(--color-rule); }
+  #eye-line { position: absolute; top: 730px; width: 0; height: 200px; border-left: 4px dashed var(--color-ink); transform-origin: 50% 100%; }
+  #eye-text { position: absolute; left: 160px; top: 966px; font-size: var(--text-label); color: var(--color-ink-soft); }
+  .region { position: absolute; top: 730px; padding: 10px 22px; background: var(--color-tag); color: var(--color-on-tag);
+    font-family: var(--font-sans); font-size: var(--text-label); line-height: 1.2; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; }
+
+  /* ---- clipping-note (src/parts/clipping-note.html) — 두 장을 나란히 놓으려고 폭만 860 ---- */
+  .note { position: absolute; width: 860px; box-sizing: border-box; padding: 56px 64px 44px;
+    background: #f1eee6 url("../assets/textures/paper.jpg") 30% 40% / 1400px auto;
+    filter: drop-shadow(0 18px 22px rgba(30,25,20,0.28));
+    clip-path: polygon(0% 1.2%, 4% 0%, 9% 1%, 15% 0.2%, 22% 1.1%, 30% 0.1%, 38% 0.9%, 46% 0%, 55% 1.2%, 63% 0.2%, 71% 1%, 80% 0%, 88% 1.1%, 95% 0.2%, 100% 1%,
+      99.4% 20%, 100% 41%, 99.2% 63%, 100% 84%, 99.5% 100%, 92% 99%, 84% 100%, 75% 98.9%, 66% 100%, 57% 99.1%, 48% 100%, 39% 98.9%, 30% 100%, 21% 99%, 12% 100%, 5% 99%, 0% 100%, 0.6% 78%, 0% 55%, 0.7% 31%); }
+  .note-kicker { font-family: var(--font-sans); font-size: var(--text-label); font-weight: 700; color: var(--color-rule); letter-spacing: 0.06em; }
+  .note-title { margin-top: 8px; padding-bottom: 18px; border-bottom: var(--rule-thin) double var(--color-ink);
+    font-size: var(--text-title); line-height: 1.15; font-weight: 900; letter-spacing: -0.02em; }
+  .note-body { margin-top: 26px; font-size: var(--text-body); line-height: 1.6; font-weight: 400; }
+  .note-source { margin-top: 22px; text-align: right; font-size: var(--text-label); color: var(--color-ink-soft); }
+
+  /* ---- stamp (src/parts/stamp.html) ---- */
+  #stamp { position: absolute; left: 230px; top: 560px; transform-origin: 50% 50%; }
+  #stamp-inner { padding: 14px 34px; border: 7px solid var(--color-rule); outline: 3px solid var(--color-rule); outline-offset: 6px;
+    color: var(--color-rule); font-family: var(--font-sans); font-size: 88px; line-height: 1.1; font-weight: 700; letter-spacing: 0.06em;
+    filter: url(#stamp-ink); opacity: 0.92; mix-blend-mode: multiply; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- portrait-clipping 의 거친 틀 (seed 고정) -->
+    <filter id="pc-rough-outer" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="34" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="pc-rough-inner" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="3" seed="21" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="26" xChannelSelector="R" yChannelSelector="G"/>
+      <feGaussianBlur stdDeviation="1.2"/>
+    </filter>
+    <mask id="pc-photo-mask"><rect x="34" y="34" width="532" height="532" fill="#fff" filter="url(#pc-rough-inner)"/></mask>
+    <!-- 선화가 펜으로 그린 것처럼 살짝 흔들리게 -->
+    <filter id="ink-wobble" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <!-- stamp 잉크 얼룩 -->
+    <filter id="stamp-ink">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.35" result="holes"/>
+      <feComposite in="SourceGraphic" in2="holes" operator="in" result="inked"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="5" result="n2"/>
+      <feDisplacementMap in="inked" in2="n2" scale="5"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="stage">
+  <div id="camera" class="abs" style="inset:0; transform-origin:50% 50%;">
+    <div id="paper-ground">
+      <div id="paper-ground-paper"></div>
+      <div id="paper-ground-newsprint"></div>
+      <div id="paper-ground-vignette"></div>
+    </div>
+
+    <!-- A: 여는 헤드라인 -->
+    <div id="sceneA" class="scene">
+      <div id="a-word" class="hp-word">규모</div>
+      <div id="a-rule" class="hp-rule"></div>
+      <p id="a-lead" class="hp-lead">
+        <span class="mask"><span class="line" id="a-l1">원자핵에서 우주까지,</span></span>
+        <span class="mask"><span class="line" id="a-l2">자연은 <span class="hl"><span class="hl-ink" id="a-hl"></span>서로 다른 규모</span>로 이루어져 있다.</span></span>
+      </p>
+      <div id="a-short" class="hp-short"></div>
+      <div id="a-tag" class="tag">통합과학 1 · 과학의 기초</div>
+    </div>
+
+    <!-- B: 규모 사다리 -->
+    <div id="sceneB" class="scene">
+      <div id="b-panels"></div>
+      <div id="b-counter">1 / 9</div>
+      <div id="b-infos"></div>
+      <div id="b-dots"></div>
+      <div id="ruler">
+        <div id="ruler-line"></div>
+        <div id="ruler-ticks"></div>
+        <div id="eye-line"></div>
+        <div id="region-micro" class="region">← 미시 세계</div>
+        <div id="region-macro" class="region">거시 세계 →</div>
+        <p id="eye-text">점선: 맨눈의 한계 · 약 0.1 mm</p>
+        <p id="ruler-caption">눈금 n = 크기 10의 n제곱 m</p>
+        <div id="ruler-marker"></div>
+      </div>
+    </div>
+
+    <!-- C: 두 개념 -->
+    <div id="sceneC" class="scene">
+      <div id="c-note1" class="note" style="left:90px; top:200px;">
+        <p class="note-kicker">용어 · 작은 쪽</p>
+        <h2 class="note-title">미시 세계</h2>
+        <p class="note-body">
+          <span class="mask"><span class="line" id="c1-l1">원자나 분자처럼 맨눈으로</span></span>
+          <span class="mask"><span class="line" id="c1-l2">볼 수 없을 만큼 작은 세계.</span></span>
+          <span class="mask"><span class="line" id="c1-l3">현미경 같은 도구로 관찰한다.</span></span>
+        </p>
+        <p class="note-source">예시 원고 p.예시1</p>
+      </div>
+      <div id="c-note2" class="note" style="left:970px; top:250px;">
+        <p class="note-kicker">용어 · 큰 쪽</p>
+        <h2 class="note-title">거시 세계</h2>
+        <p class="note-body">
+          <span class="mask"><span class="line" id="c2-l1">사람이 감각으로 느끼는 크기부터</span></span>
+          <span class="mask"><span class="line" id="c2-l2">행성 · 은하처럼 아주 큰 세계.</span></span>
+          <span class="mask"><span class="line" id="c2-l3">망원경 같은 도구로 관찰한다.</span></span>
+        </p>
+        <p class="note-source">예시 원고 p.예시2</p>
+      </div>
+    </div>
+
+    <!-- D: 닫는 헤드라인 -->
+    <div id="sceneD" class="scene">
+      <div id="d-word" class="hp-word">측정</div>
+      <div id="d-rule" class="hp-rule"></div>
+      <p id="d-lead" class="hp-lead">
+        <span class="mask"><span class="line" id="d-l1">원자핵과 우주의 크기 차이는 약 10<sup>41</sup>배.</span></span>
+        <span class="mask"><span class="line" id="d-l2">그래서 규모마다 <span class="hl"><span class="hl-ink" id="d-hl"></span>알맞은 단위와 도구</span>로 잰다.</span></span>
+      </p>
+      <div id="d-short" class="hp-short"></div>
+      <div id="stamp"><div id="stamp-inner"><span id="stamp-text">10<sup>41</sup>배</span></div></div>
+      <div id="d-tag" class="tag">통합과학 1 · 과학의 기초</div>
+    </div>
+  </div>
+  <div id="grain"></div>
+</div>
+
+<script>
+// ------------------------------------------------------------------
+// 0. 도우미
+// ------------------------------------------------------------------
+const $ = (s) => document.querySelector(s);
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+
+// ------------------------------------------------------------------
+// 1. 규모 사다리 데이터 (원고 표 예-1)
+// ------------------------------------------------------------------
+const STEPS = [
+  { name: "원자핵",          exp: -15, sub: "원자 크기의 약 10만분의 1",   art: "nucleus" },
+  { name: "원자",            exp: -10, sub: "물질을 이루는 기본 입자",      art: "atom" },
+  { name: "바이러스",        exp: -7,  sub: "전자 현미경으로 관찰",         art: "virus" },
+  { name: "세포",            exp: -5,  sub: "광학 현미경으로 관찰",         art: "cell" },
+  { name: "사람",            exp: 0,   sub: "감각으로 직접 느끼는 규모",    art: "person" },
+  { name: "지구",            exp: 7,   sub: "지름 약 1만 3천 km",           art: "earth" },
+  { name: "태양계",          exp: 13,  sub: "해왕성 궤도까지",              art: "solar" },
+  { name: "우리은하",        exp: 21,  sub: "지름 약 10만 광년",            art: "galaxy" },
+  { name: "관측 가능한 우주", exp: 26, sub: "반지름 약 460억 광년",         art: "universe" },
+];
+const EXP_MIN = -15, EXP_MAX = 26, RX0 = 160, RW = 1600;
+const rx = (e) => RX0 + (e - EXP_MIN) * RW / (EXP_MAX - EXP_MIN);
+
+// 선화 (400×400 안에 그린다)
+const ART = {
+  nucleus(g) {
+    const r = rng(15), pts = [[200,200],[150,180],[250,185],[175,250],[235,245],[200,135],[140,240],[262,240],[205,268],[165,140],[240,140],[200,200]];
+    pts.slice(0, 11).forEach(([x, y], i) => el("circle", { cx: x + (r() - .5) * 6, cy: y + (r() - .5) * 6, r: 36, class: i % 2 ? "" : "fill" }, g));
+    el("circle", { cx: 200, cy: 200, r: 175, class: "dash" }, g);
+  },
+  atom(g) {
+    [0, 60, 120].forEach((a) => el("ellipse", { cx: 200, cy: 200, rx: 175, ry: 62, transform: `rotate(${a} 200 200)` }, g));
+    el("circle", { cx: 200, cy: 200, r: 16, class: "fill" }, g);
+    [[375, 200], [112, 48], [112, 352]].forEach(([x, y]) => el("circle", { cx: x, cy: y, r: 11, class: "fill" }, g));
+  },
+  virus(g) {
+    const hex = []; for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; hex.push([200 + 110 * Math.cos(a), 200 + 110 * Math.sin(a)]); }
+    el("polygon", { points: hex.map((p) => p.join(",")).join(" ") }, g);
+    el("polygon", { points: hex.map(([x, y]) => [200 + (x - 200) * .55, 200 + (y - 200) * .55].join(",")).join(" "), class: "thin" }, g);
+    hex.forEach(([x, y]) => el("line", { x1: 200, y1: 200, x2: x, y2: y, class: "thin" }, g));
+    for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6, c = Math.cos(a), s = Math.sin(a);
+      el("line", { x1: 200 + 112 * c, y1: 200 + 112 * s, x2: 200 + 168 * c, y2: 200 + 168 * s }, g);
+      el("circle", { cx: 200 + 178 * c, cy: 200 + 178 * s, r: 10, class: "fill" }, g); }
+  },
+  cell(g) {
+    const r = rng(5); let d = "";
+    for (let i = 0; i <= 24; i++) { const a = i / 24 * Math.PI * 2, rr = 170 + (i % 24 ? (r() - .5) * 18 : 0);
+      const x = 200 + rr * Math.cos(a), y = 200 + rr * .82 * Math.sin(a); d += (i ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1); }
+    el("path", { d: d + "Z" }, g);
+    el("circle", { cx: 225, cy: 190, r: 58 }, g); el("circle", { cx: 235, cy: 180, r: 16, class: "fill" }, g);
+    for (let i = 0; i < 26; i++) { const a = r() * Math.PI * 2, rr = 70 + r() * 80; el("circle", { cx: 200 + rr * Math.cos(a), cy: 200 + rr * .7 * Math.sin(a), r: 4 + r() * 4, class: "fill" }, g); }
+    el("ellipse", { cx: 130, cy: 250, rx: 34, ry: 16, transform: "rotate(-20 130 250)", class: "thin" }, g);
+  },
+  person(g) {
+    el("circle", { cx: 200, cy: 70, r: 34 }, g);
+    el("path", { d: "M200 104 L200 250 M200 140 L130 215 M200 140 L270 215 M200 250 L150 370 M200 250 L250 370" }, g);
+    el("line", { x1: 60, y1: 372, x2: 340, y2: 372, class: "thin" }, g);
+    el("path", { d: "M330 30 L330 372 M318 30 L342 30", class: "thin" }, g); // 키 눈금
+  },
+  earth(g) {
+    el("circle", { cx: 200, cy: 200, r: 170 }, g);
+    [-110, -55, 0, 55, 110].forEach((y) => { const w = Math.sqrt(170 * 170 - y * y); el("ellipse", { cx: 200, cy: 200 + y, rx: w, ry: w * .12, class: "thin" }, g); });
+    [0.35, 0.75].forEach((k) => el("ellipse", { cx: 200, cy: 200, rx: 170 * k, ry: 170, class: "thin" }, g));
+    el("path", { d: "M120 120 C150 95 205 105 215 140 C225 175 175 185 165 220 C158 250 120 255 105 225 C92 195 100 150 120 120Z M250 230 C285 220 305 250 290 285 C275 315 240 310 238 280 C236 260 238 240 250 230Z", class: "fill", opacity: .85 }, g);
+  },
+  solar(g) {
+    el("circle", { cx: 200, cy: 200, r: 26, class: "fill" }, g);
+    const r = rng(8); [52, 78, 104, 132, 160, 182].forEach((rad, i) => {
+      el("circle", { cx: 200, cy: 200, r: rad, class: i > 3 ? "dash" : "thin" }, g);
+      const a = r() * Math.PI * 2; el("circle", { cx: 200 + rad * Math.cos(a), cy: 200 + rad * Math.sin(a), r: i > 3 ? 11 : 7, class: "fill" }, g); });
+  },
+  galaxy(g) {
+    const r = rng(21); el("ellipse", { cx: 200, cy: 200, rx: 30, ry: 22, class: "fill" }, g);
+    for (let arm = 0; arm < 2; arm++) { let d = ""; for (let i = 0; i <= 60; i++) { const t = i / 60 * 3.4, rr = 26 + t * 46, a = t + arm * Math.PI;
+        d += (i ? "L" : "M") + (200 + rr * Math.cos(a)).toFixed(1) + " " + (200 + rr * .78 * Math.sin(a)).toFixed(1); }
+      el("path", { d }, g); }
+    for (let i = 0; i < 260; i++) { const arm = i % 2, t = r() * 3.4, rr = 26 + t * 46 + (r() - .5) * 34, a = t + arm * Math.PI + (r() - .5) * .35;
+      el("circle", { cx: 200 + rr * Math.cos(a), cy: 200 + rr * .78 * Math.sin(a), r: 1.6 + r() * 2.6, class: "fill" }, g); }
+  },
+  universe(g) {
+    const r = rng(42), nodes = []; for (let i = 0; i < 22; i++) nodes.push([30 + r() * 340, 30 + r() * 340]);
+    nodes.forEach((p, i) => { const near = nodes.map((q, j) => [Math.hypot(p[0] - q[0], p[1] - q[1]), j]).sort((a, b) => a[0] - b[0]).slice(1, 3);
+      near.forEach(([dist, j]) => { if (j > i) el("line", { x1: p[0], y1: p[1], x2: nodes[j][0], y2: nodes[j][1], class: "thin" }, g); }); });
+    nodes.forEach(([x, y]) => { for (let k = 0; k < 9; k++) el("circle", { cx: x + (r() - .5) * 34, cy: y + (r() - .5) * 34, r: 1.5 + r() * 3, class: "fill" }, g); });
+    for (let i = 0; i < 120; i++) el("circle", { cx: 10 + r() * 380, cy: 10 + r() * 380, r: 1 + r() * 1.6, class: "fill" }, g);
+  },
+};
+
+function supExp(e) { return `10<sup>${e < 0 ? "−" + (-e) : e}</sup>`; }
+
+// 패널 · 글 만들기
+STEPS.forEach((s, i) => {
+  const p = document.createElement("div"); p.className = "panel"; p.id = `panel${i}`;
+  p.innerHTML = `<svg viewBox="0 0 600 600" aria-hidden="true">
+    <rect x="12" y="12" width="576" height="576" fill="#1d1d1b" filter="url(#pc-rough-outer)"/>
+    <g mask="url(#pc-photo-mask)">
+      <image href="../assets/textures/paper.jpg" x="${-i * 60}" y="${-i * 30}" width="1600" height="900" preserveAspectRatio="xMidYMid slice"/>
+      <g class="art" filter="url(#ink-wobble)" transform="translate(100 100)"></g>
+    </g></svg>`;
+  $("#b-panels").appendChild(p);
+  ART[s.art](p.querySelector(".art"));
+
+  const info = document.createElement("div"); info.className = "info"; info.id = `info${i}`;
+  // 여백은 .mask 쪽에 준다 (.line 안에 여백이 있으면 빠져나간 줄이 마스크 위쪽에 비친다)
+  info.innerHTML = `<p class="mask"><span class="line info-name" id="info${i}-name">${s.name}</span></p>
+    <p class="mask info-size-wrap"><span class="line info-size" id="info${i}-size"><small>약</small>${supExp(s.exp)} m</span></p>
+    <p class="mask info-sub-wrap"><span class="line info-sub" id="info${i}-sub">${s.sub}</span></p>`;
+  $("#b-infos").appendChild(info);
+});
+
+// 눈금
+for (let e = EXP_MIN; e <= EXP_MAX; e++) {
+  const t = document.createElement("div"); t.className = "tick" + (e % 5 ? " minor" : ""); t.style.left = (rx(e) - 1) + "px"; t.id = `tick${e}`;
+  $("#ruler-ticks").appendChild(t);
+  if (e % 5 === 0) { const l = document.createElement("div"); l.className = "tick-label"; l.style.left = rx(e) + "px"; l.textContent = e < 0 ? "−" + (-e) : e; l.id = `tlabel${e}`; $("#ruler-ticks").appendChild(l); }
+}
+$("#eye-line").style.left = (rx(-4) - 2) + "px";
+$("#region-micro").style.right = (1920 - rx(-4) + 24) + "px";
+$("#region-macro").style.left = (rx(-4) + 24) + "px";
+
+// ------------------------------------------------------------------
+// 2. 작은 타임라인 엔진 (시간 t 에만 의존)
+// ------------------------------------------------------------------
+const EASE = {
+  linear: (x) => x,
+  out: (x) => 1 - Math.pow(1 - x, 3),            // power3.out
+  inOut: (x) => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
+  in: (x) => x * x * x,
+  back: (x) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); },
+};
+const DEFAULTS = { opacity: 1, x: 0, y: 0, scale: 1, scaleX: 1, rotate: 0, yp: 0, blur: 0 };
+const tracks = new Map(); // el -> { prop -> [tweens] }
+function tw(sel, start, dur, props, ease = "out") {
+  const targets = typeof sel === "string" ? document.querySelectorAll(sel) : [sel];
+  if (!targets.length) throw new Error("없는 조각: " + sel);
+  targets.forEach((t) => {
+    if (!tracks.has(t)) tracks.set(t, {});
+    const tr = tracks.get(t);
+    for (const k in props) { (tr[k] ||= []).push({ start, dur, from: props[k][0], to: props[k][1], ease: EASE[ease] }); }
+  });
+}
+function valueAt(list, t) {
+  let v = list[0].from;
+  for (const w of list) if (t >= w.start) { const p = w.dur ? Math.min(1, (t - w.start) / w.dur) : 1; v = w.from + (w.to - w.from) * w.ease(p); }
+  return v;
+}
+function apply(t) {
+  for (const [node, tr] of tracks) {
+    const v = { ...DEFAULTS }; for (const k in tr) v[k] = valueAt(tr[k], t);
+    node.style.opacity = v.opacity;
+    node.style.transform = `translate(${v.x}px, ${v.y}px) translateY(${v.yp}%) rotate(${v.rotate}deg) scale(${v.scale}) scaleX(${v.scaleX})`;
+    if (tr.blur) node.style.filter = v.blur > 0.01 ? `blur(${v.blur}px)` : "";
+  }
+  // 필름 그레인: 프레임마다 위치만 바꾼다 (30fps 기준)
+  const f = Math.floor(t * 30), r = rng(f * 7919 + 1);
+  $("#grain").style.transform = `translate(${Math.floor(r() * 64) - 32}px, ${Math.floor(r() * 64) - 32}px)`;
+  // 뒤 신문 글자: 장면마다 다른 면
+  const side = t < 9 ? 0 : t < 36 ? 1 : t < 49 ? 2 : 3;
+  $("#paper-ground-newsprint").style.backgroundPosition = ["0 0", "-520px -160px", "-260px -420px", "-900px -300px"][side];
+}
+
+// 글줄 등장 (mask-rise): .line 이 아래(110%)에서 올라온다
+const rise = (sel, at, dur = .7) => tw(sel, at, dur, { yp: [110, 0] }, "out");
+const fall = (sel, at, dur = .45) => tw(sel, at, dur, { yp: [0, -110] }, "in");
+
+// ------------------------------------------------------------------
+// 3. 타임라인
+// ------------------------------------------------------------------
+const DURATION = 60;
+
+// 카메라: 장면마다 아주 느린 밀기
+tw("#camera", 0, 9, { scale: [1, 1.035] }, "linear");
+tw("#camera", 9, .01, { scale: [1, 1] }, "linear");
+tw("#camera", 36, 13, { scale: [1, 1.03] }, "linear");
+tw("#camera", 49, 11, { scale: [1, 1.04] }, "linear");
+
+// --- A (0–9) ---
+tw("#a-word", .2, 1.1, { y: [-60, 0], opacity: [0, 1] });
+tw("#a-rule", .9, .9, { scaleX: [0, 1] }, "inOut");
+rise("#a-l1", 1.6); rise("#a-l2", 2.1);
+tw("#a-hl", 3.1, .7, { scaleX: [0, 1] }, "inOut");
+tw("#a-short", 3.7, .6, { scaleX: [0, 1] }, "inOut");
+tw("#a-tag", 4.0, .6, { x: [-30, 0], opacity: [0, 1] });
+tw("#sceneA", 8.3, .7, { opacity: [1, 0] }, "inOut");
+
+// --- B (9–36) ---
+tw("#sceneB", 8.9, .01, { opacity: [0, 1] }, "linear");
+tw("#ruler-line", 9.0, 1.2, { scaleX: [0, 1] }, "inOut");
+for (let e = EXP_MIN; e <= EXP_MAX; e++) {
+  const at = 9.2 + (e - EXP_MIN) * .022;
+  tw(`#tick${e}`, at, .3, { opacity: [0, 1], y: [8, 0] });
+  if (e % 5 === 0) tw(`#tlabel${e}`, at + .05, .4, { opacity: [0, 1], y: [10, 0] });
+}
+tw("#ruler-caption", 10.0, .6, { opacity: [0, 1] });
+tw("#b-counter", 9.8, .5, { opacity: [0, 1] });
+tw("#b-dots", 9.9, .8, { scaleX: [0, 1] }, "inOut");
+
+const STEP0 = 10.0, STEP = 2.65, ZOOM = .9;
+STEPS.forEach((s, i) => {
+  const at = STEP0 + i * STEP;       // 이 단계가 화면에 서는 시각
+  const p = `#panel${i}`;
+  // 들어오기: 첫 장은 툭 놓이고, 나머지는 바깥에서(크게) 줄어들며 들어온다 = 카메라가 뒤로 빠지는 느낌
+  if (i === 0) tw(p, at - .2, .8, { opacity: [0, 1], scale: [1.08, 1], rotate: [-3, -1.2] });
+  else tw(p, at - ZOOM, ZOOM, { opacity: [0, 1], scale: [2.4, 1], rotate: [-1.2, -1.2] }, "inOut");
+  // 나가기: 가운데로 작아지며 사라진다 (다음 것이 이것을 품는다)
+  if (i < STEPS.length - 1) tw(p, at + STEP - ZOOM, ZOOM, { opacity: [1, 0], scale: [1, .12] }, "inOut");
+  else tw(p, 35.2, .7, { opacity: [1, 0] }, "inOut");
+
+  // 글: 줄마다 올라오고, 다음 단계 전에 위로 빠진다
+  rise(`#info${i}-name`, at + .05, .6); rise(`#info${i}-size`, at + .2, .6); rise(`#info${i}-sub`, at + .35, .6);
+  const outAt = i < STEPS.length - 1 ? at + STEP - ZOOM - .1 : 35.1;
+  fall(`#info${i}-name`, outAt); fall(`#info${i}-size`, outAt + .05); fall(`#info${i}-sub`, outAt + .1);
+
+  // 눈금 위 빨간 표시 이동 (x 는 translate 로)
+  if (i === 0) tw("#ruler-marker", at - .2, .6, { x: [rx(s.exp), rx(s.exp)], opacity: [0, 1] });
+  else tw("#ruler-marker", at - ZOOM, ZOOM + .1, { x: [rx(STEPS[i - 1].exp), rx(s.exp)] }, "inOut");
+});
+// 1/9 ~ 9/9 숫자 바꾸기 (글자는 엔진 밖에서)
+const counterAt = (t) => { const i = Math.max(0, Math.min(8, Math.floor((t - STEP0 + ZOOM / 2) / STEP))); return `${i + 1} / 9`; };
+
+// 세포(3) 다음, 사람(4)으로 가며 맨눈의 한계를 지나간다
+const EYE = STEP0 + 4 * STEP - ZOOM / 2;
+tw("#eye-line", EYE - .3, .7, { opacity: [0, 1], scale: [.2, 1] }, "out");
+tw("#eye-text", EYE, .6, { opacity: [0, 1], y: [10, 0] });
+tw("#region-micro", EYE + .3, .6, { opacity: [0, 1], x: [20, 0] });
+tw("#region-macro", EYE + .45, .6, { opacity: [0, 1], x: [-20, 0] });
+tw("#sceneB", 35.4, .6, { opacity: [1, 0] }, "inOut");
+
+// --- C (36–49) ---
+tw("#sceneC", 35.9, .01, { opacity: [0, 1] }, "linear");
+tw("#c-note1", 36.1, 1.0, { y: [140, 0], opacity: [0, 1], rotate: [-4, -1.2] });
+rise("#c1-l1", 36.9); rise("#c1-l2", 37.2); rise("#c1-l3", 37.5);
+tw("#c-note2", 39.4, 1.0, { y: [140, 0], opacity: [0, 1], rotate: [4, 1.0] });
+rise("#c2-l1", 40.2); rise("#c2-l2", 40.5); rise("#c2-l3", 40.8);
+tw("#sceneC", 48.4, .6, { opacity: [1, 0] }, "inOut");
+
+// --- D (49–60) ---
+tw("#sceneD", 48.9, .01, { opacity: [0, 1] }, "linear");
+tw("#d-word", 49.2, 1.1, { y: [-60, 0], opacity: [0, 1] });
+tw("#d-rule", 49.9, .9, { scaleX: [0, 1] }, "inOut");
+rise("#d-l1", 50.6); rise("#d-l2", 51.2);
+tw("#stamp", 52.6, .35, { opacity: [0, 1], scale: [1.9, 1], rotate: [-14, -8] }, "back");
+tw("#d-hl", 54.0, .7, { scaleX: [0, 1] }, "inOut");
+tw("#d-short", 54.6, .6, { scaleX: [0, 1] }, "inOut");
+tw("#d-tag", 54.9, .6, { x: [-30, 0], opacity: [0, 1] });
+tw("#stage", 59.2, .8, { opacity: [1, 0] }, "inOut");
+
+// ------------------------------------------------------------------
+// 4. 재생 · 렌더 연결
+// ------------------------------------------------------------------
+window.__duration = DURATION;
+window.__seek = (t) => { apply(t); $("#b-counter").textContent = counterAt(t); };
+window.__ready = Promise.all([document.fonts.ready, ...[...document.images].map((im) => im.decode().catch(() => {}))]);
+
+const q = new URLSearchParams(location.search);
+if (q.has("t")) window.__seek(parseFloat(q.get("t")));
+else if (!navigator.webdriver) {
+  window.__ready.then(() => { const t0 = performance.now(); const loop = () => { window.__seek(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); }; loop(); });
+} else window.__seek(0);
+document.body.style.background = "#1d1d1b";
+</script>
+</body>
+</html>
