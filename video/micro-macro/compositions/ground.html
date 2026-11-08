@@ -1,0 +1,42 @@
+<!--
+  compositions/ground.html — 공통 바탕 (paper-ground): 신문지 · 뒤 신문 글자(미리 흐리게 한 newsprint-soft.png) · 비네트. 60초. 장면마다 뒤 신문 글자 면만 바꾼다
+-->
+<template>
+  <style>
+    @font-face { font-family: "NotoSerifKR"; font-weight: 200 900; src: url("assets/fonts/NotoSerifKR-VF.woff2") format("woff2"); }
+    @font-face { font-family: "Pretendard"; font-weight: 400; src: url("assets/fonts/Pretendard-Regular.woff2") format("woff2"); }
+    @font-face { font-family: "Pretendard"; font-weight: 700; src: url("assets/fonts/Pretendard-Bold.woff2") format("woff2"); }
+    :root {
+      --color-paper: #e8e4db; --color-paper-shade: #c9c3b6; --color-ink: #1d1d1b; --color-ink-soft: #4a4844; --color-ink-faint: #8a867e;
+      --color-rule: #c0322b; --color-highlight: #cdeb3a; --color-on-photo: #f4f1ea; --color-tag: #111111; --color-on-tag: #ffffff;
+      --font-serif: "NotoSerifKR", serif; --font-sans: "Pretendard", sans-serif;
+      --text-masthead: 300px; --text-year: 220px; --text-title: 96px; --text-name: 72px; --text-lead: 56px; --text-body: 44px; --text-label: 32px;
+      --rule-thick: 14px; --rule-thin: 4px; --dot-gap: 14px;
+    }
+    #root { position: absolute; inset: 0; font-family: var(--font-serif); color: var(--color-ink); -webkit-font-smoothing: antialiased; }
+    #root p, #root h2 { margin: 0; }
+    .mask { display: block; overflow: hidden; }
+    .line { display: block; }
+    sup { font-size: 0.58em; line-height: 0; vertical-align: 0.82em; font-style: normal; }
+    .tag { position: absolute; left: 60px; bottom: 60px; padding: 10px 22px; background: var(--color-tag); color: var(--color-on-tag);
+      font-family: var(--font-sans); font-size: var(--text-label); line-height: 1.2; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; }
+    #ground-paper { position: absolute; left: -240px; top: -135px; width: 2400px; height: 1350px; background: url("assets/textures/paper.jpg") center / cover; }
+    #ground-newsprint { position: absolute; left: -240px; top: -135px; width: 2400px; height: 1350px;
+      background: url("assets/textures/newsprint-soft.png") 0 0 / 2400px 1350px repeat; opacity: 0.32; mix-blend-mode: multiply; }
+    #ground-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 55%, rgba(20,18,15,0.35) 100%); }
+  </style>
+  <div id="root" data-composition-id="ground" data-width="1920" data-height="1080" data-layout-allow-overflow>
+    <div id="ground-paper"></div>
+    <div id="ground-newsprint"></div>
+    <div id="ground-vignette"></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.set("#ground-newsprint", { backgroundPosition: "0px 0px" }, 0);
+    tl.set("#ground-newsprint", { backgroundPosition: "-520px -160px" }, 9);
+    tl.set("#ground-newsprint", { backgroundPosition: "-260px -420px" }, 36);
+    tl.set("#ground-newsprint", { backgroundPosition: "-900px -300px" }, 49);
+    tl.set({}, {}, 60);
+    window.__timelines["ground"] = tl;
+  </script>
+</template>

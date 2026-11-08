@@ -1,0 +1,57 @@
+<!--
+  compositions/open.html — 여는 헤드라인 (headline-page). 9초. 바꾸는 곳: #open-word · #open-l1 · #open-l2 · #open-tag
+-->
+<template>
+  <style>
+    @font-face { font-family: "NotoSerifKR"; font-weight: 200 900; src: url("assets/fonts/NotoSerifKR-VF.woff2") format("woff2"); }
+    @font-face { font-family: "Pretendard"; font-weight: 400; src: url("assets/fonts/Pretendard-Regular.woff2") format("woff2"); }
+    @font-face { font-family: "Pretendard"; font-weight: 700; src: url("assets/fonts/Pretendard-Bold.woff2") format("woff2"); }
+    :root {
+      --color-paper: #e8e4db; --color-paper-shade: #c9c3b6; --color-ink: #1d1d1b; --color-ink-soft: #4a4844; --color-ink-faint: #8a867e;
+      --color-rule: #c0322b; --color-highlight: #cdeb3a; --color-on-photo: #f4f1ea; --color-tag: #111111; --color-on-tag: #ffffff;
+      --font-serif: "NotoSerifKR", serif; --font-sans: "Pretendard", sans-serif;
+      --text-masthead: 300px; --text-year: 220px; --text-title: 96px; --text-name: 72px; --text-lead: 56px; --text-body: 44px; --text-label: 32px;
+      --rule-thick: 14px; --rule-thin: 4px; --dot-gap: 14px;
+    }
+    #root { position: absolute; inset: 0; font-family: var(--font-serif); color: var(--color-ink); -webkit-font-smoothing: antialiased; }
+    #root p, #root h2 { margin: 0; }
+    .mask { display: block; overflow: hidden; }
+    .line { display: block; }
+    sup { font-size: 0.58em; line-height: 0; vertical-align: 0.82em; font-style: normal; }
+    .tag { position: absolute; left: 60px; bottom: 60px; padding: 10px 22px; background: var(--color-tag); color: var(--color-on-tag);
+      font-family: var(--font-sans); font-size: var(--text-label); line-height: 1.2; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; }
+    .hp-word { position: absolute; left: -40px; top: -90px; white-space: nowrap;
+      font-size: var(--text-masthead); line-height: 1; font-weight: 900; letter-spacing: -0.03em; color: var(--color-ink); }
+    .hp-rule { position: absolute; left: 0; right: 0; top: 330px; height: var(--rule-thick); background: var(--color-rule); transform-origin: 0 50%; }
+    .hp-lead { position: absolute; right: 120px; top: 400px; width: 1500px; text-align: right;
+      font-size: var(--text-lead); line-height: 1.55; font-weight: 400; font-style: italic; color: var(--color-ink); }
+    .hp-short { position: absolute; right: 120px; top: 700px; width: 240px; height: var(--rule-thin); background: var(--color-ink); transform-origin: 100% 50%; }
+    .hl { position: relative; display: inline-block; z-index: 0; isolation: isolate; }
+    .hl-ink { position: absolute; left: -10px; right: -10px; top: 18%; bottom: 8%; background: var(--color-highlight);
+      mix-blend-mode: multiply; transform-origin: 0 50%; border-radius: 4px 10px 6px 12px; z-index: -1; }
+  </style>
+  <div id="root" data-composition-id="open" data-width="1920" data-height="1080" data-layout-allow-overflow>
+    <div id="open-all" style="position:absolute; inset:0;">
+      <div id="open-word" class="hp-word" data-layout-bleed="true">규모</div>
+      <div id="open-rule" class="hp-rule"></div>
+      <p class="hp-lead">
+        <span class="mask"><span class="line" id="open-l1">원자핵에서 우주까지,</span></span>
+        <span class="mask"><span class="line" id="open-l2">자연은 <span class="hl"><span class="hl-ink" id="open-hl"></span>서로 다른 규모</span>로 이루어져 있다.</span></span>
+      </p>
+      <div id="open-short" class="hp-short"></div>
+      <div id="open-tag" class="tag">통합과학 1 · 과학의 기초</div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#open-word", { y: 0, opacity: 1 }, { y: 0, opacity: 1, duration: 0.1 }, 0); // 첫 프레임(썸네일)부터 제목이 서 있다
+    tl.fromTo("#open-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "power2.inOut" }, 0.9);
+    tl.fromTo("#open-l1", { yPercent: 110 }, { yPercent: 0, duration: 0.8, ease: "power4.out" }, 1.6);
+    tl.fromTo("#open-l2", { yPercent: 110 }, { yPercent: 0, duration: 0.8, ease: "power4.out" }, 2.1);
+    tl.fromTo("#open-hl", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "power2.inOut" }, 3.1);
+    tl.fromTo("#open-short", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power2.inOut" }, 3.7);
+    tl.fromTo("#open-tag", { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 4.0);
+    tl.fromTo("#open-all", { opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(8px)", duration: 0.4, ease: "power3.in" }, 8.5);
+    window.__timelines["open"] = tl;
+  </script>
+</template>

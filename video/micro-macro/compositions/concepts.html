@@ -1,0 +1,69 @@
+<!--
+  compositions/concepts.html — 미시 세계 · 거시 세계 정의 (clipping-note 두 장, 폭 860). 13초. 형광펜 없음 (한 장면 한 군데 규칙 — 닫는 장면에 씀)
+-->
+<template>
+  <style>
+    @font-face { font-family: "NotoSerifKR"; font-weight: 200 900; src: url("assets/fonts/NotoSerifKR-VF.woff2") format("woff2"); }
+    @font-face { font-family: "Pretendard"; font-weight: 400; src: url("assets/fonts/Pretendard-Regular.woff2") format("woff2"); }
+    @font-face { font-family: "Pretendard"; font-weight: 700; src: url("assets/fonts/Pretendard-Bold.woff2") format("woff2"); }
+    :root {
+      --color-paper: #e8e4db; --color-paper-shade: #c9c3b6; --color-ink: #1d1d1b; --color-ink-soft: #4a4844; --color-ink-faint: #8a867e;
+      --color-rule: #c0322b; --color-highlight: #cdeb3a; --color-on-photo: #f4f1ea; --color-tag: #111111; --color-on-tag: #ffffff;
+      --font-serif: "NotoSerifKR", serif; --font-sans: "Pretendard", sans-serif;
+      --text-masthead: 300px; --text-year: 220px; --text-title: 96px; --text-name: 72px; --text-lead: 56px; --text-body: 44px; --text-label: 32px;
+      --rule-thick: 14px; --rule-thin: 4px; --dot-gap: 14px;
+    }
+    #root { position: absolute; inset: 0; font-family: var(--font-serif); color: var(--color-ink); -webkit-font-smoothing: antialiased; }
+    #root p, #root h2 { margin: 0; }
+    .mask { display: block; overflow: hidden; }
+    .line { display: block; }
+    sup { font-size: 0.58em; line-height: 0; vertical-align: 0.82em; font-style: normal; }
+    .tag { position: absolute; left: 60px; bottom: 60px; padding: 10px 22px; background: var(--color-tag); color: var(--color-on-tag);
+      font-family: var(--font-sans); font-size: var(--text-label); line-height: 1.2; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; }
+    .note { position: absolute; width: 860px; box-sizing: border-box; padding: 56px 64px 44px;
+      background: #f1eee6 url("assets/textures/paper.jpg") 30% 40% / 1400px auto;
+      filter: drop-shadow(0 18px 22px rgba(30,25,20,0.28));
+      clip-path: polygon(0% 1.2%, 4% 0%, 9% 1%, 15% 0.2%, 22% 1.1%, 30% 0.1%, 38% 0.9%, 46% 0%, 55% 1.2%, 63% 0.2%, 71% 1%, 80% 0%, 88% 1.1%, 95% 0.2%, 100% 1%,
+        99.4% 20%, 100% 41%, 99.2% 63%, 100% 84%, 99.5% 100%, 92% 99%, 84% 100%, 75% 98.9%, 66% 100%, 57% 99.1%, 48% 100%, 39% 98.9%, 30% 100%, 21% 99%, 12% 100%, 5% 99%, 0% 100%, 0.6% 78%, 0% 55%, 0.7% 31%); }
+    .note-kicker { font-family: var(--font-sans); font-size: var(--text-label); font-weight: 700; color: var(--color-rule); letter-spacing: 0.06em; }
+    .note-title { margin-top: 8px; padding-bottom: 18px; border-bottom: var(--rule-thin) double var(--color-ink);
+      font-size: var(--text-title); line-height: 1.15; font-weight: 900; letter-spacing: -0.02em; }
+    .note-body { margin-top: 26px; font-size: var(--text-body); line-height: 1.6; font-weight: 400; }
+    .note-source { margin-top: 22px; text-align: right; font-size: var(--text-label); color: var(--color-ink-soft); }
+    #concepts-note1 { left: 90px; top: 200px; }
+    #concepts-note2 { left: 970px; top: 250px; }
+  </style>
+  <div id="root" data-composition-id="concepts" data-width="1920" data-height="1080" data-layout-allow-overflow>
+    <div id="concepts-all" style="position:absolute; inset:0;" data-layout-allow-overlap>
+      <div id="concepts-note1" class="note">
+        <p class="note-kicker">용어 · 작은 쪽</p>
+        <h2 class="note-title">미시 세계</h2>
+        <p class="note-body">
+          <span class="mask"><span class="line" id="concepts-n1l1">원자나 분자처럼 맨눈으로</span></span>
+          <span class="mask"><span class="line" id="concepts-n1l2">볼 수 없을 만큼 작은 세계.</span></span>
+          <span class="mask"><span class="line" id="concepts-n1l3">현미경 같은 도구로 관찰한다.</span></span>
+        </p>
+        <p class="note-source">예시 원고 p.예시1</p>
+      </div>
+      <div id="concepts-note2" class="note">
+        <p class="note-kicker">용어 · 큰 쪽</p>
+        <h2 class="note-title">거시 세계</h2>
+        <p class="note-body">
+          <span class="mask"><span class="line" id="concepts-n2l1">사람이 감각으로 느끼는 크기부터</span></span>
+          <span class="mask"><span class="line" id="concepts-n2l2">행성 · 은하처럼 아주 큰 세계.</span></span>
+          <span class="mask"><span class="line" id="concepts-n2l3">망원경 같은 도구로 관찰한다.</span></span>
+        </p>
+        <p class="note-source">예시 원고 p.예시2</p>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#concepts-note1", { y: 140, opacity: 0, rotation: -4 }, { y: 0, opacity: 1, rotation: -1.2, duration: 1.0, ease: "expo.out" }, 0.1);
+    tl.fromTo(["#concepts-n1l1", "#concepts-n1l2", "#concepts-n1l3"], { yPercent: 110 }, { yPercent: 0, duration: 0.7, ease: "power4.out", stagger: 0.3 }, 0.9);
+    tl.fromTo("#concepts-note2", { y: 140, opacity: 0, rotation: 4 }, { y: 0, opacity: 1, rotation: 1.0, duration: 1.0, ease: "expo.out" }, 3.4);
+    tl.fromTo(["#concepts-n2l1", "#concepts-n2l2", "#concepts-n2l3"], { yPercent: 110 }, { yPercent: 0, duration: 0.7, ease: "power4.out", stagger: 0.3 }, 4.2);
+    tl.fromTo("#concepts-all", { opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(8px)", duration: 0.4, ease: "power3.in" }, 12.5);
+    window.__timelines["concepts"] = tl;
+  </script>
+</template>

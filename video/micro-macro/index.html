@@ -1,0 +1,41 @@
+<!doctype html>
+<!--
+  통합과학 1 · 미시 세계와 거시 세계 — 1920×1080 · 30fps · 60초
+  원고: docs/textbook/sample-micro-macro.md (직접 쓴 예시 원고 — 실제 수업에서는 교과서 원문으로 바꾼다)
+  룩: docs/design.md (신문 다큐멘터리)
+  장면: open 0–9 · ladder + ruler 9–36 · concepts 36–49 · close 49–60
+  ground(바탕)는 맨 아래, grain(필름 그레인)은 맨 위에서 60초 내내 깔린다
+-->
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #e8e4db; }
+      #root { position: relative; width: 100%; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="60" data-width="1920" data-height="1080">
+      <div id="ground" data-composition-id="ground" data-composition-src="compositions/ground.html" class="clip"
+        data-start="0" data-duration="60" data-track-index="0" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index:0"></div>
+      <div id="open" data-composition-id="open" data-composition-src="compositions/open.html" class="clip"
+        data-start="0" data-duration="9" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index:1"></div>
+      <div id="ladder" data-composition-id="ladder" data-composition-src="compositions/ladder.html" class="clip"
+        data-start="9" data-duration="27" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index:1"></div>
+      <div id="ruler" data-composition-id="ruler" data-composition-src="compositions/ruler.html" class="clip"
+        data-start="9" data-duration="27" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index:2"></div>
+      <div id="concepts" data-composition-id="concepts" data-composition-src="compositions/concepts.html" class="clip"
+        data-start="36" data-duration="13" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index:1"></div>
+      <div id="close" data-composition-id="close" data-composition-src="compositions/close.html" class="clip"
+        data-start="49" data-duration="11" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index:1"></div>
+      <div id="grain" data-composition-id="grain" data-composition-src="compositions/grain.html" class="clip"
+        data-start="0" data-duration="60" data-track-index="3" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index:10"></div>
+    </div>
+    <script>
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>
